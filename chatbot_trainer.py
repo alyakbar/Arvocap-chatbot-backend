@@ -216,6 +216,36 @@ class ChatbotTrainer:
             
         except Exception as e:
             logger.error(f"Error training local model: {e}")
+    
+    def train_on_data(self, processed_data_file: str) -> bool:
+        """
+        Train the chatbot on processed data
+        For OpenAI-based systems, this primarily updates the vector database
+        """
+        try:
+            logger.info(f"Training chatbot on data from: {processed_data_file}")
+            
+            # For OpenAI-based training, we mainly need to ensure the 
+            # vector database is updated with the latest data
+            if self.use_openai:
+                # The vector database has already been updated in the pipeline
+                # This is essentially a no-op for OpenAI since we use embeddings
+                logger.info("✅ OpenAI-based training completed (vector database updated)")
+                return True
+            else:
+                # For local models, perform actual training
+                training_examples = self.prepare_training_data(processed_data_file)
+                if training_examples:
+                    self.train_local_model(training_examples)
+                    logger.info("✅ Local model training completed")
+                    return True
+                else:
+                    logger.error("❌ No training examples found")
+                    return False
+                    
+        except Exception as e:
+            logger.error(f"Error in train_on_data: {e}")
+            return False
 
 class ChatbotInterface:
     def __init__(self, use_openai: bool = True, model_path: Optional[str] = None):

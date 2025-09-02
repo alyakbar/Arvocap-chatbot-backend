@@ -1,6 +1,3 @@
-import chromadb
-from chromadb.config import Settings
-from chromadb.errors import NotFoundError
 import json
 import os
 import numpy as np
@@ -8,6 +5,21 @@ from sentence_transformers import SentenceTransformer
 from typing import List, Dict, Optional
 import logging
 from config import VECTOR_DB_PATH, COLLECTION_NAME, EMBEDDING_MODEL
+from pathlib import Path
+
+# FAISS imports
+import faiss
+import pickle
+
+# ChromaDB imports (fallback only)
+try:
+    import chromadb
+    from chromadb.config import Settings
+    from chromadb.errors import NotFoundError
+    CHROMADB_AVAILABLE = True
+except ImportError:
+    CHROMADB_AVAILABLE = False
+    print("ChromaDB not available, using FAISS only")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,6 +44,372 @@ def convert_to_native_types(data):
         return data.tolist()
     else:
         return data
+
+# Use FAISS as the primary VectorDatabase class
+class VectorDatabase:
+    """
+    FAISS-based vector database implementation (now the default)
+    """
+    
+    def __init__(self, db_path: str = "vector_db_faiss", collection_name: str = COLLECTION_NAME):
+        self.db_path = Path(db_path)
+        self.db_path.mkdir(exist_ok=True)
+        self.collection_name = collection_name
+        
+        self.embedding_model = SentenceTransformer(EMBEDDING_MODEL)
+        self.embedding_dim = 384  # Dimension for all-MiniLM-L6-v2
+        
+        # FAISS index
+        self.index = None
+        self.documents = []  # Store document content
+        self.metadata = []   # Store document metadata
+        
+        self._load_or_create_index()
+    
+    def _load_or_create_index(self):
+        """Load existing index or create new one"""
+        index_file = self.db_path / "faiss.index"
+        docs_file = self.db_path / "documents.pkl"
+        meta_file = self.db_path / "metadata.pkl"
+        
+        if index_file.exists() and docs_file.exists() and meta_file.exists():
+            try:
+                # Load existing index
+                self.index = faiss.read_index(str(index_file))
+                
+                with open(docs_file, 'rb') as f:
+                    self.documents = pickle.load(f)
+                
+                with open(meta_file, 'rb') as f:
+                    self.metadata = pickle.load(f)
+                
+                logger.info(f"✅ Loaded existing FAISS index with {len(self.documents)} documents")
+            except Exception as e:
+                logger.error(f"Error loading FAISS index: {e}")
+                self._create_new_index()
+        else:
+            self._create_new_index()
+    
+    def _create_new_index(self):
+        """Create new FAISS index"""
+        self.index = faiss.IndexFlatIP(self.embedding_dim)  # Inner product (cosine similarity)
+        self.documents = []
+        self.metadata = []
+        logger.info("✅ Created new FAISS index")
+    
+    def _save_index(self):
+        """Save index and data to disk"""
+        try:
+            index_file = self.db_path / "faiss.index"
+            docs_file = self.db_path / "documents.pkl"
+            meta_file = self.db_path / "metadata.pkl"
+            
+            faiss.write_index(self.index, str(index_file))
+            
+            with open(docs_file, 'wb') as f:
+                pickle.dump(self.documents, f)
+            
+            with open(meta_file, 'wb') as f:
+                pickle.dump(self.metadata, f)
+            
+            logger.info(f"💾 Saved FAISS index with {len(self.documents)} documents")
+        except Exception as e:
+            logger.error(f"Error saving FAISS index: {e}")
+    
+    def add_documents(self, documents: List[Dict]) -> None:
+        """Add documents to the FAISS vector database"""
+        try:
+            if not documents:
+                return
+            
+            texts = []
+            metadatas = []
+            
+            for doc in documents:
+                content = doc.get('content', '')
+                if not content or len(content.strip()) < 10:
+                    continue
+                
+                texts.append(str(content))
+                
+                # Convert all metadata to native Python types
+                metadata = {
+                    'url': str(doc.get('url', '')),
+                    'title': str(doc.get('title', '')),
+                    'source': str(doc.get('source', '')),
+                    'type': str(doc.get('type', 'document')),
+                    'keywords': doc.get('keywords', []),
+                    'meta_description': str(doc.get('meta_description', ''))
+                }
+                metadatas.append(metadata)
+            
+            if texts:
+                # Generate embeddings
+                embeddings = self.embedding_model.encode(texts)
+                
+                # Normalize embeddings for cosine similarity
+                faiss.normalize_L2(embeddings)
+                
+                # Add to FAISS index
+                self.index.add(embeddings.astype('float32'))
+                
+                # Store documents and metadata
+                self.documents.extend(texts)
+                self.metadata.extend(metadatas)
+                
+                logger.info(f"📄 Added {len(texts)} documents to FAISS (total: {len(self.documents)})")
+                
+                # Save to disk
+                self._save_index()
+        
+        except Exception as e:
+            logger.error(f"Error adding documents to FAISS: {e}")
+    
+    def add_qa_pairs(self, qa_pairs: List[Dict]) -> None:
+        """Add Q&A pairs to the FAISS vector database"""
+        try:
+            documents = []
+            
+            for qa in qa_pairs:
+                question = str(qa.get('question', ''))
+                answer = str(qa.get('answer', ''))
+                
+                if not question or not answer:
+                    continue
+                
+                # Store both question and answer as searchable content
+                combined_text = f"Q: {question} A: {answer}"
+                
+                doc = {
+                    'content': combined_text,
+                    'type': 'qa_pair',
+                    'title': f"Q&A: {question}",
+                    'source': 'manual_qa',
+                    'keywords': qa.get('keywords', [])
+                }
+                documents.append(doc)
+            
+            if documents:
+                self.add_documents(documents)
+                logger.info(f"❓ Added {len(documents)} Q&A pairs to FAISS")
+            
+        except Exception as e:
+            logger.error(f"Error adding Q&A pairs to FAISS: {e}")
+    
+    def search(self, query: str, n_results: int = 5) -> Dict:
+        """Search for similar documents using FAISS"""
+        try:
+            if self.index.ntotal == 0:
+                logger.warning("FAISS index is empty")
+                return {'documents': [[]], 'metadatas': [[]], 'distances': [[]]}
+            
+            # Generate query embedding
+            query_embedding = self.embedding_model.encode([query])
+            faiss.normalize_L2(query_embedding)
+            
+            # Search
+            search_k = min(n_results, self.index.ntotal)
+            distances, indices = self.index.search(query_embedding.astype('float32'), search_k)
+            
+            # Format results in ChromaDB-compatible format
+            documents = []
+            metadatas = []
+            result_distances = []
+            
+            for i, idx in enumerate(indices[0]):
+                if idx >= 0 and idx < len(self.documents):
+                    documents.append(self.documents[idx])
+                    metadatas.append(self.metadata[idx])
+                    result_distances.append(float(distances[0][i]))
+            
+            return {
+                'documents': [documents],  # ChromaDB format
+                'metadatas': [metadatas],  # ChromaDB format  
+                'distances': [result_distances]  # ChromaDB format
+            }
+        
+        except Exception as e:
+            logger.error(f"Error searching FAISS: {e}")
+            return {'documents': [[]], 'metadatas': [[]], 'distances': [[]]}
+    
+    def get_collection_stats(self) -> Dict:
+        """Get collection statistics"""
+        return {
+            'total_documents': len(self.documents),
+            'index_size': self.index.ntotal if self.index else 0,
+            'embedding_dim': self.embedding_dim
+        }
+    
+    def delete_collection(self):
+        """Delete/clear the collection"""
+        try:
+            self._create_new_index()
+            self._save_index()
+            logger.info("🗑️ Cleared FAISS collection")
+        except Exception as e:
+            logger.error(f"Error deleting FAISS collection: {e}")
+
+# Keep the specialized FAISS class for advanced use
+    """
+    FAISS-based vector database implementation for better performance
+    """
+    
+    def __init__(self, db_path: str = "vector_db_faiss", embedding_model: str = EMBEDDING_MODEL):
+        self.db_path = Path(db_path)
+        self.db_path.mkdir(exist_ok=True)
+        
+        self.embedding_model = SentenceTransformer(embedding_model)
+        self.embedding_dim = 384  # Dimension for all-MiniLM-L6-v2
+        
+        # FAISS index
+        self.index = None
+        self.documents = []  # Store document content
+        self.metadata = []   # Store document metadata
+        
+        self._load_or_create_index()
+    
+    def _load_or_create_index(self):
+        """Load existing index or create new one"""
+        index_file = self.db_path / "faiss.index"
+        docs_file = self.db_path / "documents.pkl"
+        meta_file = self.db_path / "metadata.pkl"
+        
+        if index_file.exists() and docs_file.exists() and meta_file.exists():
+            try:
+                # Load existing index
+                self.index = faiss.read_index(str(index_file))
+                
+                with open(docs_file, 'rb') as f:
+                    self.documents = pickle.load(f)
+                
+                with open(meta_file, 'rb') as f:
+                    self.metadata = pickle.load(f)
+                
+                logger.info(f"Loaded existing FAISS index with {len(self.documents)} documents")
+            except Exception as e:
+                logger.error(f"Error loading index: {e}")
+                self._create_new_index()
+        else:
+            self._create_new_index()
+    
+    def _create_new_index(self):
+        """Create new FAISS index"""
+        self.index = faiss.IndexFlatIP(self.embedding_dim)  # Inner product (cosine similarity)
+        self.documents = []
+        self.metadata = []
+        logger.info("Created new FAISS index")
+    
+    def _save_index(self):
+        """Save index and data to disk"""
+        try:
+            index_file = self.db_path / "faiss.index"
+            docs_file = self.db_path / "documents.pkl"
+            meta_file = self.db_path / "metadata.pkl"
+            
+            faiss.write_index(self.index, str(index_file))
+            
+            with open(docs_file, 'wb') as f:
+                pickle.dump(self.documents, f)
+            
+            with open(meta_file, 'wb') as f:
+                pickle.dump(self.metadata, f)
+            
+            logger.info("Saved FAISS index to disk")
+        except Exception as e:
+            logger.error(f"Error saving index: {e}")
+    
+    def add_documents(self, documents: List[Dict]) -> None:
+        """Add documents to the vector database"""
+        try:
+            if not documents:
+                return
+            
+            texts = []
+            metadatas = []
+            
+            for doc in documents:
+                content = doc.get('content', '')
+                if not content or len(content.strip()) < 10:
+                    continue
+                
+                texts.append(str(content))
+                
+                metadata = {
+                    'source': str(doc.get('source', '')),
+                    'title': str(doc.get('title', '')),
+                    'url': str(doc.get('url', '')),
+                    'type': str(doc.get('type', 'document')),
+                    'chunk_id': doc.get('chunk_id', len(self.documents))
+                }
+                metadatas.append(metadata)
+            
+            if texts:
+                # Generate embeddings
+                embeddings = self.embedding_model.encode(texts)
+                
+                # Normalize embeddings for cosine similarity
+                faiss.normalize_L2(embeddings)
+                
+                # Add to FAISS index
+                self.index.add(embeddings.astype('float32'))
+                
+                # Store documents and metadata
+                self.documents.extend(texts)
+                self.metadata.extend(metadatas)
+                
+                logger.info(f"Added {len(texts)} documents to FAISS index (total: {len(self.documents)})")
+                
+                # Save to disk
+                self._save_index()
+        
+        except Exception as e:
+            logger.error(f"Error adding documents to FAISS: {e}")
+    
+    def search(self, query: str, n_results: int = 5) -> Dict:
+        """Search for similar documents"""
+        try:
+            if self.index.ntotal == 0:
+                return {'documents': [], 'metadatas': [], 'distances': []}
+            
+            # Generate query embedding
+            query_embedding = self.embedding_model.encode([query])
+            faiss.normalize_L2(query_embedding)
+            
+            # Search
+            distances, indices = self.index.search(query_embedding.astype('float32'), min(n_results, self.index.ntotal))
+            
+            # Format results
+            documents = []
+            metadatas = []
+            result_distances = []
+            
+            for i, idx in enumerate(indices[0]):
+                if idx >= 0 and idx < len(self.documents):
+                    documents.append([self.documents[idx]])  # ChromaDB format
+                    metadatas.append([self.metadata[idx]])   # ChromaDB format
+                    result_distances.append([float(distances[0][i])])  # ChromaDB format
+            
+            return {
+                'documents': documents,
+                'metadatas': metadatas,
+                'distances': result_distances
+            }
+        
+        except Exception as e:
+            logger.error(f"Error searching FAISS: {e}")
+            return {'documents': [], 'metadatas': [], 'distances': []}
+    
+    def get_collection_stats(self) -> Dict:
+        """Get collection statistics"""
+        return {
+            'total_documents': len(self.documents),
+            'index_size': self.index.ntotal if self.index else 0
+        }
+    
+    def delete_collection(self):
+        """Delete/clear the collection"""
+        self._create_new_index()
+        self._save_index()
 
 class VectorDatabase:
     def __init__(self, db_path: str = VECTOR_DB_PATH, collection_name: str = COLLECTION_NAME):
@@ -180,8 +558,32 @@ class VectorDatabase:
 
 class ChatbotKnowledgeBase:
     def __init__(self):
-        self.vector_db = VectorDatabase()
+        """Initialize knowledge base with FAISS as primary database"""
+        logger.info("🚀 Initializing FAISS-based knowledge base")
+        self.vector_db = VectorDatabase("vector_db_faiss")
+        self.using_faiss = True
         self.embedding_model = SentenceTransformer(EMBEDDING_MODEL)
+    
+    def clear_database(self):
+        """Clear all data from the vector database"""
+        try:
+            self.vector_db.delete_collection()
+            # Recreate the collection
+            self.vector_db = VectorDatabase()
+            logger.info("Vector database cleared and recreated")
+        except Exception as e:
+            logger.error(f"Error clearing database: {e}")
+    
+    def add_document(self, content: str, metadata: Dict = None):
+        """Add a single document to the knowledge base"""
+        try:
+            doc_data = {
+                'content': content,
+                'metadata': metadata or {}
+            }
+            self.vector_db.add_documents([doc_data])
+        except Exception as e:
+            logger.error(f"Error adding document: {e}")
     
     def get_collection_size(self) -> int:
         """Return total number of documents/items in the collection.
@@ -317,6 +719,70 @@ class ChatbotKnowledgeBase:
         
         return "\n\n".join(context_parts)
     
+    def load_all_pdf_chunks(self, processed_pdfs_file: str = "data/processed_pdfs.json"):
+        """Load all PDF chunks into the knowledge base using FAISS for better performance"""
+        try:
+            logger.info(f"🔄 Loading all PDF chunks from {processed_pdfs_file}")
+            
+            with open(processed_pdfs_file, 'r', encoding='utf-8') as f:
+                pdf_data = json.load(f)
+            
+            total_chunks = 0
+            total_pdfs = len(pdf_data['pdfs'])
+            
+            logger.info(f"📊 Found {total_pdfs} PDFs to process")
+            
+            # Clear existing data first
+            self.clear_database()
+            
+            # Process each PDF
+            batch_documents = []
+            for i, pdf in enumerate(pdf_data['pdfs']):
+                filename = pdf['metadata']['filename']
+                logger.info(f"📄 Processing PDF {i+1}/{total_pdfs}: {filename}")
+                
+                # Get all chunks from this PDF
+                chunks = pdf['content']['chunks']
+                
+                # Prepare documents for this PDF
+                for j, chunk in enumerate(chunks):
+                    if len(chunk.strip()) > 20:  # Only add meaningful chunks
+                        doc = {
+                            'content': chunk,
+                            'source': pdf['source'],
+                            'title': filename,
+                            'url': pdf['source'],
+                            'type': 'pdf_chunk',
+                            'chunk_id': f"{filename}_chunk_{j}"
+                        }
+                        batch_documents.append(doc)
+                        total_chunks += 1
+                
+                # Add documents in batches of 50 for better performance
+                if len(batch_documents) >= 50:
+                    self.vector_db.add_documents(batch_documents)
+                    logger.info(f"   ✅ Added batch of {len(batch_documents)} chunks")
+                    batch_documents = []
+            
+            # Add remaining documents
+            if batch_documents:
+                self.vector_db.add_documents(batch_documents)
+                logger.info(f"   ✅ Added final batch of {len(batch_documents)} chunks")
+            
+            logger.info(f"🎉 Successfully loaded {total_chunks} chunks from {total_pdfs} PDFs")
+            
+            # Verify the result
+            final_size = self.get_collection_size()
+            logger.info(f"🔍 Final knowledge base size: {final_size} documents")
+            
+            return total_chunks
+            
+        except Exception as e:
+            logger.error(f"❌ Error loading PDF chunks: {e}")
+            import traceback
+            traceback.print_exc()
+            return 0
+
     def get_stats(self) -> Dict:
         """Get knowledge base statistics"""
         return self.vector_db.get_collection_stats()

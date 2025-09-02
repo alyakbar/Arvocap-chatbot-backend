@@ -24,8 +24,8 @@ EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
 CHAT_MODEL = 'gpt-3.5-turbo'
 
 # Vector Database Settings
-# Use an absolute path to ensure consistency
-VECTOR_DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'vector_db'))
+# Use FAISS as primary vector database with absolute path
+VECTOR_DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'vector_db_faiss'))
 COLLECTION_NAME = 'chatbot_knowledge'
 
 # Training Settings
@@ -35,6 +35,7 @@ NUM_EPOCHS = 3
 MAX_SEQ_LENGTH = 512
 
 # File Paths
+DATA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 TRAINING_DATA_PATH = '../data/training-data.json'
 SCRAPED_DATA_PATH = './data/scraped_data.json'
 MODEL_OUTPUT_PATH = './models/'

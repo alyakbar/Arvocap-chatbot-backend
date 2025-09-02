@@ -1,195 +1,325 @@
-# Chatbot Training System
+# 🤖 Arvocap Chatbot Training System
 
-This Python-based system allows you to create and train a chatbot by scraping data from websites.
+A comprehensive AI-powered chatbot training and serving system that combines web scraping, PDF processing (including OCR), and intelligent chat responses using OpenAI GPT models and vector databases.
 
-## Features
+## 🌟 Features
 
-- **Web Scraping**: Extract content from websites (supports both regular and JavaScript-heavy sites)
-- **Text Processing**: Clean, chunk, and analyze scraped text
-- **Vector Database**: Store and search through knowledge using ChromaDB
-- **Training Options**: 
-  - OpenAI fine-tuning
-  - Local model training with Transformers
-- **Interactive Chat**: Test your trained chatbot
+### 📊 **Intelligent Data Processing**
+- **Web Scraping**: Extract content from websites using both standard HTTP requests and Selenium for JavaScript-heavy sites
+- **PDF Processing**: Handle both text-based and scanned PDFs with OCR support using Tesseract
+- **Text Analysis**: Clean, chunk, and analyze text content with keyword extraction and Q&A pair generation
+- **Vector Database**: Store and search through knowledge using ChromaDB with semantic similarity
 
-## Installation
+### 🤖 **AI Chat Capabilities**
+- **OpenAI Integration**: Powered by GPT-3.5/GPT-4 for intelligent responses
+- **Context-Aware**: Retrieves relevant information from your knowledge base
+- **Real-time API**: FastAPI server for seamless integration with web applications
+- **Conversation Management**: Support for conversation tracking and context
 
-1. **Install Python 3.8+**
+### 🔧 **Training & Management**
+- **Automated Training**: Complete pipeline from data collection to chatbot deployment
+- **Knowledge Base Updates**: Add new content and retrain on-the-fly
+- **Performance Monitoring**: Track document counts, response times, and system health
+- **Background Processing**: Handle large datasets without blocking operations
 
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+## 🚀 Quick Start
 
-3. **Download spaCy model:**
-   ```bash
-   python -m spacy download en_core_web_sm
-   ```
+### Prerequisites
+- **Python 3.8+** (tested with Python 3.13)
+- **OpenAI API Key** (required for best results)
+- **Tesseract OCR** (automatically installed via winget)
 
-4. **Setup environment variables:**
-   - Copy `.env` file and add your API keys
-   - At minimum, add your OpenAI API key for best results
-
-## Quick Start
-
-1. **Run the main pipeline:**
-   ```bash
-   python main.py
-   ```
-
-2. **Choose option 1 for full pipeline**
-
-3. **Enter a website URL to scrape**
-
-4. **Follow the prompts to train your chatbot**
-
-## Individual Components
-
-### Web Scraper (`web_scraper.py`)
+### 1. Environment Setup
 ```bash
-python web_scraper.py
-```
-- Scrapes websites and extracts text content
-- Supports both requests-based and Selenium-based scraping
-- Handles multiple pages and follows links
+# Navigate to the python_training directory
+cd python_training
 
-### Text Processor (`text_processor.py`)
+# Activate the virtual environment
+.\env\Scripts\activate  # Windows
+# or
+source env/bin/activate  # Linux/Mac
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Configuration
+Create a `.env` file in the `python_training` directory:
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+HUGGINGFACE_API_KEY=your_huggingface_key_optional
+```
+
+### 3. Start the API Server
 ```bash
-python text_processor.py
-```
-- Cleans and processes scraped text
-- Extracts keywords and Q&A pairs
-- Chunks content for better processing
-- Clusters similar content
+# Simple API server (recommended for Next.js integration)
+python api_server.py
 
-### Vector Database (`vector_database.py`)
-```bash
-python vector_database.py
-```
-- Creates searchable knowledge base
-- Uses sentence embeddings for similarity search
-- Stores documents and Q&A pairs
-
-### Chatbot Trainer (`chatbot_trainer.py`)
-```bash
-python chatbot_trainer.py
-```
-- Prepares training data
-- Supports OpenAI fine-tuning
-- Can train local models with Transformers
-- Provides chat interface
-
-## Usage Examples
-
-### 1. Scrape a Company Website
-```python
-from web_scraper import WebScraper
-
-scraper = WebScraper()
-data = scraper.scrape_website("https://example.com", max_pages=20)
+# Or unified system (includes all features)
+python unified_chatbot_system.py
 ```
 
-### 2. Process Text Data
-```python
-from text_processor import TextProcessor
+The API will be available at `http://localhost:8000`
 
-processor = TextProcessor()
-processed = processor.process_scraped_data(scraped_data)
-```
-
-### 3. Build Knowledge Base
-```python
-from vector_database import ChatbotKnowledgeBase
-
-kb = ChatbotKnowledgeBase()
-kb.load_training_data('processed_data.json')
-```
-
-### 4. Train and Chat
-```python
-from chatbot_trainer import ChatbotInterface
-
-chatbot = ChatbotInterface(use_openai=True)
-response = chatbot.generate_response("Hello!")
-```
-
-## Configuration
-
-Edit `config.py` to customize:
-- Model settings
-- Text processing parameters
-- API endpoints
-- File paths
-
-## File Structure
+## 📁 Project Structure
 
 ```
 python_training/
-├── main.py              # Main pipeline script
-├── config.py            # Configuration settings
-├── web_scraper.py       # Website scraping
-├── text_processor.py    # Text processing and analysis
-├── vector_database.py   # Vector database operations
-├── chatbot_trainer.py   # Model training and chat interface
-├── requirements.txt     # Python dependencies
-├── .env                 # Environment variables
-└── data/               # Generated data files
-    ├── scraped_data.json
-    ├── processed_data.json
-    └── openai_training.jsonl
+├── 🔧 Core Components
+│   ├── api_server.py              # Main FastAPI server for Next.js integration
+│   ├── unified_chatbot_system.py  # Complete unified system with all features
+│   ├── main.py                    # Training pipeline orchestrator
+│   └── config.py                  # Central configuration
+│
+├── 📄 Data Processing
+│   ├── web_scraper.py             # Website content extraction
+│   ├── pdf_processor.py           # PDF processing with OCR support
+│   ├── text_processor.py          # Text cleaning and analysis
+│   └── vector_database.py         # ChromaDB vector storage
+│
+├── 🤖 AI & Training
+│   ├── chatbot_trainer.py         # Model training and chat interface
+│   └── test_ocr.py               # OCR functionality testing
+│
+├── 📊 Data & Storage
+│   ├── data/                     # Training data and processed files
+│   ├── vector_db/               # Vector database storage
+│   ├── models/                  # Model storage
+│   └── logs/                    # System logs
+│
+├── ⚙️ Configuration
+│   ├── requirements.txt         # Python dependencies
+│   ├── .env                    # API keys and secrets
+│   └── env/                    # Virtual environment
+│
+└── 📚 Documentation
+    ├── README.md                # This file
+    ├── UNIFIED_SYSTEM_README.md # Detailed unified system guide
+    ├── PDF_TRAINING_README.md   # PDF processing documentation
+    └── OCR_TRAINING_GUIDE.md    # OCR setup and usage guide
 ```
 
-## Training Process
+## 🛠️ Usage Examples
 
-1. **Scraping**: Extract content from target website
-2. **Processing**: Clean text, extract keywords, create Q&A pairs
-3. **Knowledge Base**: Store in vector database for similarity search
-4. **Training**: 
-   - OpenAI: Create fine-tuning dataset
-   - Local: Train with Transformers library
-5. **Testing**: Interactive chat interface
+### API Integration (Next.js)
+```javascript
+// Chat with the AI
+const response = await fetch('http://localhost:8000/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    message: 'What investment funds do you have information about?' 
+  })
+});
 
-## Tips for Best Results
+// Search the knowledge base
+const searchResults = await fetch('http://localhost:8000/search', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    query: 'investment performance',
+    max_results: 5 
+  })
+});
+```
 
-1. **Website Selection**: Choose content-rich websites with clear structure
-2. **API Keys**: Use OpenAI API for best results
-3. **Data Quality**: Review scraped content for relevance
-4. **Training Data**: More diverse, high-quality data = better chatbot
-5. **Testing**: Test with various question types
+### Training Pipeline
+```python
+from main import ArvocapTrainingPipeline
 
-## Troubleshooting
+# Initialize pipeline
+pipeline = ArvocapTrainingPipeline()
 
-### Common Issues:
+# Train with web content
+urls = ["https://www.example.com", "https://www.finance-site.com"]
+pipeline.collect_web_data(urls)
 
-1. **Selenium WebDriver**: Install ChromeDriver for JavaScript sites
-2. **spaCy Model**: Run `python -m spacy download en_core_web_sm`
-3. **Memory Issues**: Reduce batch size or max pages
-4. **API Limits**: Check OpenAI API quotas and billing
+# Process PDFs (including scanned documents)
+pipeline.collect_pdf_data("./data/pdfs")
 
-### Error Handling:
+# Build knowledge base
+pipeline.process_and_train()
+```
 
-The system includes comprehensive error handling and logging. Check the console output for detailed error messages.
+### Direct API Usage
+```python
+from chatbot_trainer import ChatbotInterface
+from vector_database import ChatbotKnowledgeBase
 
-## Integration with Next.js App
+# Initialize chatbot
+chatbot = ChatbotInterface(use_openai=True)
+kb = ChatbotKnowledgeBase()
 
-The training system can integrate with your existing Next.js chatbot:
+# Add documents to knowledge base
+kb.add_document("Your financial content here", {"source": "manual"})
 
-1. Export training data to JSON format
-2. Use the trained model via API
-3. Import knowledge base into your existing system
-4. Update your chatbot's response generation
+# Generate response
+response = chatbot.generate_response("Tell me about investment options")
+```
 
-## Advanced Features
+## 🌐 API Endpoints
 
-- **Custom Models**: Support for different transformer models
-- **Incremental Training**: Add new data without retraining from scratch
-- **Multi-language**: Extend for non-English content
-- **Custom Embeddings**: Use domain-specific embedding models
+### Core Chat & Search
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | System overview and health check |
+| `/chat` | POST | Chat with the AI chatbot |
+| `/search` | POST | Vector search through knowledge base |
+| `/health` | GET | Detailed system health information |
 
-## Contributing
+### Knowledge Management
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/knowledge/stats` | GET | Knowledge base statistics |
+| `/knowledge/search` | POST | Search knowledge base content |
+| `/scrape` | POST | Scrape websites and add to knowledge base |
+| `/upload-pdf` | POST | Upload and process PDF documents |
 
-Feel free to extend the system with:
-- Additional data sources
-- New training algorithms
-- Better text processing
-- Enhanced chat interfaces
+### Training & Management
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/train` | POST | Run complete training pipeline |
+| `/status` | GET | Get training and system status |
+| `/docs` | GET | Interactive API documentation (Swagger) |
+
+## 🔍 Advanced Features
+
+### Web Scraping Capabilities
+- **Multi-format Support**: HTML, JavaScript-rendered pages, dynamic content
+- **Intelligent Crawling**: Respects robots.txt and implements rate limiting
+- **Content Extraction**: Clean text extraction with metadata preservation
+- **Link Following**: Configurable depth crawling within domains
+
+### PDF Processing & OCR
+- **Multiple Extraction Methods**: PyMuPDF, pdfplumber, pypdf for text-based PDFs
+- **OCR Support**: Tesseract integration for scanned documents
+- **Smart Processing**: Automatically detects best extraction method
+- **Financial Documents**: Optimized for fund reports, statements, compliance docs
+
+### Vector Database Features
+- **Semantic Search**: Find relevant content using meaning, not just keywords
+- **Efficient Storage**: ChromaDB for fast similarity searches
+- **Metadata Support**: Rich metadata for filtering and organization
+- **Scalable**: Handles thousands of documents efficiently
+
+### AI Chat Features
+- **Context Retrieval**: Automatically finds relevant background information
+- **Source Attribution**: Shows which documents informed the response
+- **Conversation Memory**: Maintains context across chat sessions
+- **Customizable**: Adjust response style and behavior
+
+## 🔧 Configuration Options
+
+### Model Settings (`config.py`)
+```python
+# AI Model Configuration
+CHAT_MODEL = 'gpt-3.5-turbo'  # or 'gpt-4'
+EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
+
+# Text Processing
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 50
+MAX_TEXT_LENGTH = 5000
+
+# Vector Database
+COLLECTION_NAME = 'chatbot_knowledge'
+```
+
+### Environment Variables (`.env`)
+```env
+# Required
+OPENAI_API_KEY=your_key_here
+
+# Optional
+HUGGINGFACE_API_KEY=your_key_here
+```
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+**1. OCR Not Working**
+```bash
+# Install Tesseract OCR
+winget install --id UB-Mannheim.TesseractOCR
+
+# Verify OCR packages
+python test_ocr.py
+```
+
+**2. Import Errors**
+```bash
+# Reinstall dependencies
+pip install -r requirements.txt --force-reinstall
+```
+
+**3. API Server Won't Start**
+```bash
+# Check if port is in use
+netstat -an | findstr :8000
+
+# Try different port
+python api_server.py --port 8001
+```
+
+**4. Memory Issues**
+- Reduce `CHUNK_SIZE` in config.py for large documents
+- Process PDFs in smaller batches
+- Use `max_pages` parameter for web scraping
+
+### Performance Optimization
+
+**For Large Datasets:**
+- Use background processing for training
+- Implement pagination for API responses
+- Consider upgrading to PostgreSQL for production
+
+**For Better Responses:**
+- Add more diverse training data
+- Increase context window size
+- Use GPT-4 for better reasoning
+
+## 🎯 Use Cases
+
+### Financial Advisory
+- **Investment Research**: Process fund reports and market analysis
+- **Client Documentation**: Extract information from statements and filings
+- **Regulatory Compliance**: Search through compliance documents
+- **Market Intelligence**: Monitor financial news and reports
+
+### Document Management
+- **Knowledge Base Creation**: Convert document collections to searchable databases
+- **Content Migration**: Extract content from legacy PDF systems
+- **Research Assistance**: Find specific information across large document sets
+- **Automated Summarization**: Generate summaries from multiple sources
+
+### Customer Support
+- **FAQ Automation**: Answer common questions using existing documentation
+- **Product Information**: Provide detailed product specifications and features
+- **Policy Explanation**: Help customers understand complex policies and procedures
+- **Troubleshooting**: Guide users through problem resolution steps
+
+---
+
+## 📞 Support & Contributing
+
+### Getting Help
+- **Documentation**: Check the guides in the project folder
+- **Issues**: Report bugs and request features on GitHub
+- **Community**: Contact support for discussions and help
+
+### Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests and documentation
+5. Submit a pull request
+
+### License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+**Built with ❤️ for the Arvocap community**
+
+*Transform your documents into intelligent conversations*

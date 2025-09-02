@@ -33,8 +33,14 @@ def test_imports():
         print("✅ transformers")
         
         try:
+            import faiss
+            print("✅ faiss-cpu (primary vector database)")
+        except Exception as e:
+            print(f"⚠️  faiss-cpu: {e}")
+        
+        try:
             import chromadb
-            print("✅ chromadb")
+            print("✅ chromadb (fallback)")
         except Exception as e:
             print(f"⚠️  chromadb: {e}")
         

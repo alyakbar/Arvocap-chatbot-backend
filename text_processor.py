@@ -8,6 +8,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 import logging
+from datetime import datetime
 from config import MAX_TEXT_LENGTH, MIN_TEXT_LENGTH, CHUNK_SIZE, CHUNK_OVERLAP
 
 logging.basicConfig(level=logging.INFO)
@@ -272,6 +273,10 @@ class TextProcessor:
         processed_data['qa_pairs'] = [convert_to_native_types(qa) for qa in processed_data['qa_pairs']]
         
         return convert_to_native_types(processed_data)
+
+    def get_timestamp(self) -> str:
+        """Get current timestamp in ISO format"""
+        return datetime.now().isoformat()
 
 def main():
     """Example usage"""
