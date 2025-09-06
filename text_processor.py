@@ -39,7 +39,73 @@ class TextProcessor:
     def __init__(self):
         self.setup_nltk()
         self.setup_spacy()
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.embedding_model = self._load_embedding_model()
+
+    def create_chunks(self, text, chunk_size=500, overlap=50, max_chunks=1000):
+        """
+        Split text into chunks of chunk_size with overlap.
+        Returns a list of chunk dicts: [{"content": ..., "start": ..., "end": ...}]
+        Prevents infinite loops and excessive memory usage.
+        """
+        if not text:
+            return []
+        chunks = []
+        start = 0
+        length = len(text)
+        chunk_count = 0
+        while start < length and chunk_count < max_chunks:
+            end = min(start + chunk_size, length)
+            chunk_text = text[start:end]
+            chunks.append({
+                "content": chunk_text,
+                "start": start,
+                "end": end
+            })
+            chunk_count += 1
+            # Prevent infinite loop if overlap is too large
+            next_start = end - overlap
+            if next_start <= start:
+                next_start = end
+            start = next_start
+        if chunk_count == max_chunks:
+            logging.warning(f"create_chunks: hit max_chunks ({max_chunks}), input may be too large.")
+        return chunks
+    def _load_embedding_model(self):
+        """Load embedding model with memory optimization"""
+        import gc
+        import torch
+        
+        try:
+            # Clear memory before loading
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            
+            # Try smaller, more memory-efficient models first
+            model_options = [
+                'all-MiniLM-L6-v2',      # Original (good quality, 80MB)
+                'paraphrase-MiniLM-L3-v2', # Smaller alternative (61MB)
+                'all-MiniLM-L12-v2'      # Fallback (120MB but more stable)
+            ]
+            
+            for model_name in model_options:
+                try:
+                    print(f"⏳ Loading embedding model: {model_name}")
+                    model = SentenceTransformer(model_name)
+                    print(f"✅ Successfully loaded: {model_name}")
+                    return model
+                except Exception as e:
+                    print(f"❌ Failed to load {model_name}: {e}")
+                    gc.collect()
+                    continue
+            
+            # If all models fail, create a simple fallback
+            print("⚠️ Using fallback embedding method")
+            return None
+            
+        except Exception as e:
+            print(f"❌ Error loading embedding model: {e}")
+            return None
         
     def setup_nltk(self):
         """Download required NLTK data"""
@@ -154,11 +220,72 @@ class TextProcessor:
     def generate_embeddings(self, texts: List[str]) -> np.ndarray:
         """Generate embeddings for a list of texts"""
         try:
+            if self.embedding_model is None:
+                # Fallback: Use simple TF-IDF embeddings
+                return self._generate_tfidf_embeddings(texts)
+            
             embeddings = self.embedding_model.encode(texts)
             return embeddings
         except Exception as e:
             logger.error(f"Error generating embeddings: {e}")
-            return np.array([])
+            # Fallback to TF-IDF
+            return self._generate_tfidf_embeddings(texts)
+    
+    def _generate_tfidf_embeddings(self, texts: List[str]) -> np.ndarray:
+        """Fallback embedding method using simple text features"""
+        try:
+            # Try scikit-learn first
+            from sklearn.feature_extraction.text import TfidfVectorizer
+            
+            if not texts:
+                return np.array([])
+            
+            vectorizer = TfidfVectorizer(max_features=384, stop_words='english')
+            embeddings = vectorizer.fit_transform(texts).toarray()
+            
+            print(f"🔄 Using TF-IDF fallback embeddings ({embeddings.shape})")
+            return embeddings
+            
+        except ImportError:
+            # Simple word-based embeddings if sklearn not available
+            return self._generate_simple_embeddings(texts)
+        except Exception as e:
+            logger.error(f"Error with TF-IDF fallback: {e}")
+            return self._generate_simple_embeddings(texts)
+    
+    def _generate_simple_embeddings(self, texts: List[str]) -> np.ndarray:
+        """Ultra-simple fallback: basic text feature embeddings"""
+        try:
+            if not texts:
+                return np.array([])
+            
+            embeddings = []
+            for text in texts:
+                # Simple features: length, word count, character frequencies
+                features = [
+                    len(text),  # Text length
+                    len(text.split()),  # Word count
+                    text.count(' '),  # Space count
+                    text.count('.'),  # Sentence count approximation
+                    text.count('!') + text.count('?'),  # Exclamation/question count
+                    len(set(text.lower())),  # Unique characters
+                ]
+                
+                # Pad or truncate to 384 dimensions
+                while len(features) < 384:
+                    features.extend(features[:min(len(features), 384 - len(features))])
+                features = features[:384]
+                
+                embeddings.append(features)
+            
+            result = np.array(embeddings, dtype=np.float32)
+            print(f"🔄 Using simple text feature embeddings ({result.shape})")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error with simple fallback: {e}")
+            # Ultimate fallback: random embeddings
+            return np.random.random((len(texts), 384)).astype(np.float32)
     
     def cluster_texts(self, texts: List[str], n_clusters: int = 5) -> Dict:
         """Cluster texts based on similarity"""

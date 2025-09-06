@@ -7,7 +7,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\FACTSHEET-174ba72a-448e-4384-93c2-daf35b10e79e.pdf",
       "file_size": 110044,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.543279",
+      "processed_at": "2025-09-05T21:00:18.458805",
       "title": "",
       "author": "",
       "subject": "",
@@ -42,7 +42,9 @@
       "total_pages": 2,
       "total_chars": 3489,
       "total_words": 548,
-      "total_chunks": 5
+      "total_chunks": 5,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -53,7 +55,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\FACTSHEET-4ab89e13-d959-4ac1-86ca-649f7c83b1d1.pdf",
       "file_size": 174860,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.566936",
+      "processed_at": "2025-09-05T21:00:18.519661",
       "title": "",
       "author": "",
       "subject": "",
@@ -89,7 +91,9 @@
       "total_pages": 2,
       "total_chars": 3779,
       "total_words": 593,
-      "total_chunks": 6
+      "total_chunks": 6,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -100,7 +104,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\FACTSHEET-67d02d39-13e8-44d7-bf74-2e14b05b18e1.pdf",
       "file_size": 271744,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.654479",
+      "processed_at": "2025-09-05T21:00:18.725097",
       "title": "",
       "author": "",
       "subject": "",
@@ -136,7 +140,9 @@
       "total_pages": 2,
       "total_chars": 3748,
       "total_words": 588,
-      "total_chunks": 6
+      "total_chunks": 6,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -147,7 +153,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\FACTSHEET-97db076f-6b85-4528-aa7a-b030d52d4ba8.pdf",
       "file_size": 141869,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.675533",
+      "processed_at": "2025-09-05T21:00:18.795649",
       "title": "",
       "author": "",
       "subject": "",
@@ -183,7 +189,9 @@
       "total_pages": 2,
       "total_chars": 3916,
       "total_words": 624,
-      "total_chunks": 6
+      "total_chunks": 6,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -194,7 +202,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\FACTSHEET-9f691fdf-c43c-48bc-beaa-9eeaba692d16.pdf",
       "file_size": 110044,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.699335",
+      "processed_at": "2025-09-05T21:00:18.869089",
       "title": "",
       "author": "",
       "subject": "",
@@ -230,7 +238,9 @@
       "total_pages": 2,
       "total_chars": 3889,
       "total_words": 612,
-      "total_chunks": 6
+      "total_chunks": 6,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -241,7 +251,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\FACTSHEET-a69a41dd-f8bd-4bac-87c4-46975818b493.pdf",
       "file_size": 203364,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.749549",
+      "processed_at": "2025-09-05T21:00:19.081253",
       "title": "",
       "author": "",
       "subject": "",
@@ -276,7 +286,9 @@
       "total_pages": 2,
       "total_chars": 3736,
       "total_words": 604,
-      "total_chunks": 5
+      "total_chunks": 5,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -287,7 +299,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\FACTSHEET-ebfa4840-4b82-4196-b2fe-2eb261a22deb.pdf",
       "file_size": 108399,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.805510",
+      "processed_at": "2025-09-05T21:00:19.134670",
       "title": "",
       "author": "",
       "subject": "",
@@ -322,7 +334,9 @@
       "total_pages": 2,
       "total_chars": 3431,
       "total_words": 538,
-      "total_chunks": 5
+      "total_chunks": 5,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -333,7 +347,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-3038cb88-9877-477e-a36a-43c61671490d.pdf",
       "file_size": 116314,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.837870",
+      "processed_at": "2025-09-05T21:00:19.190893",
       "title": "",
       "author": "",
       "subject": "",
@@ -372,7 +386,9 @@
       "total_pages": 2,
       "total_chars": 6603,
       "total_words": 1066,
-      "total_chunks": 9
+      "total_chunks": 9,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -383,7 +399,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-47001cd0-aafe-4215-8ceb-4b31a9a7353a.pdf",
       "file_size": 119137,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.863333",
+      "processed_at": "2025-09-05T21:00:19.279412",
       "title": "",
       "author": "",
       "subject": "",
@@ -424,7 +440,9 @@
       "total_pages": 2,
       "total_chars": 7573,
       "total_words": 1206,
-      "total_chunks": 11
+      "total_chunks": 11,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -435,7 +453,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-7c30f1f5-9455-477e-98c6-cabe3d69ef8e.pdf",
       "file_size": 117008,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.920264",
+      "processed_at": "2025-09-05T21:00:19.422836",
       "title": "",
       "author": "",
       "subject": "",
@@ -475,7 +493,9 @@
       "total_pages": 2,
       "total_chars": 7524,
       "total_words": 1208,
-      "total_chunks": 10
+      "total_chunks": 10,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -486,7 +506,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-81bd5f53-da4a-443c-9e17-6fbe51dcc48c.pdf",
       "file_size": 119774,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:51.964685",
+      "processed_at": "2025-09-05T21:00:19.785576",
       "title": "",
       "author": "",
       "subject": "",
@@ -529,7 +549,9 @@
       "total_pages": 2,
       "total_chars": 9014,
       "total_words": 1407,
-      "total_chunks": 13
+      "total_chunks": 13,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -540,7 +562,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-97b7b2ab-d77b-4e16-8c7a-601bc907e258.pdf",
       "file_size": 118189,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.010248",
+      "processed_at": "2025-09-05T21:00:19.951041",
       "title": "",
       "author": "",
       "subject": "",
@@ -581,7 +603,9 @@
       "total_pages": 2,
       "total_chars": 7536,
       "total_words": 1196,
-      "total_chunks": 11
+      "total_chunks": 11,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -592,7 +616,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-9b0d23b7-a116-419d-8b38-33e77aff3e71.pdf",
       "file_size": 116233,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.076996",
+      "processed_at": "2025-09-05T21:00:20.157921",
       "title": "",
       "author": "",
       "subject": "",
@@ -633,7 +657,9 @@
       "total_pages": 2,
       "total_chars": 7428,
       "total_words": 1203,
-      "total_chunks": 11
+      "total_chunks": 11,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -644,7 +670,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-9f10cf61-8312-414c-95cb-ac9656868e1d.pdf",
       "file_size": 128550,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.107883",
+      "processed_at": "2025-09-05T21:00:20.291192",
       "title": "",
       "author": "",
       "subject": "",
@@ -684,7 +710,9 @@
       "total_pages": 2,
       "total_chars": 7036,
       "total_words": 1128,
-      "total_chunks": 10
+      "total_chunks": 10,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -695,7 +723,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-e16dab75-ea9c-49a7-ba7e-9124f62aae7b.pdf",
       "file_size": 118639,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.140435",
+      "processed_at": "2025-09-05T21:00:20.468907",
       "title": "",
       "author": "",
       "subject": "",
@@ -737,7 +765,9 @@
       "total_pages": 2,
       "total_chars": 8376,
       "total_words": 1349,
-      "total_chunks": 12
+      "total_chunks": 12,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -748,7 +778,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-e3e75bdf-8bc6-4f5b-9b16-c1c0b8f27d24.pdf",
       "file_size": 119034,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.181190",
+      "processed_at": "2025-09-05T21:00:20.613447",
       "title": "",
       "author": "",
       "subject": "",
@@ -789,7 +819,9 @@
       "total_pages": 2,
       "total_chars": 7557,
       "total_words": 1213,
-      "total_chunks": 11
+      "total_chunks": 11,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -800,7 +832,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\KIID-fe4872d5-ef41-4a0a-a5f7-ffa545633998.pdf",
       "file_size": 119053,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.211783",
+      "processed_at": "2025-09-05T21:00:20.688686",
       "title": "",
       "author": "",
       "subject": "",
@@ -840,7 +872,9 @@
       "total_pages": 2,
       "total_chars": 7513,
       "total_words": 1189,
-      "total_chunks": 10
+      "total_chunks": 10,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -851,7 +885,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-21341c3e-ff0a-4500-a4e9-23c1b7aa9372.pdf",
       "file_size": 1081325,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.330728",
+      "processed_at": "2025-09-05T21:00:21.210975",
       "title": "",
       "author": "",
       "subject": "",
@@ -1009,7 +1043,9 @@
       "total_pages": 23,
       "total_chars": 16724,
       "total_words": 2651,
-      "total_chunks": 23
+      "total_chunks": 23,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1020,7 +1056,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-27cccdbd-855a-4916-85b3-3bf827fca495.pdf",
       "file_size": 233279,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.384707",
+      "processed_at": "2025-09-05T21:00:21.652328",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -1091,7 +1127,9 @@
       "total_pages": 7,
       "total_chars": 11568,
       "total_words": 1791,
-      "total_chunks": 16
+      "total_chunks": 16,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1102,7 +1140,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-611372b1-33d0-43ef-bfa7-c4151a48a678.pdf",
       "file_size": 230032,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.451354",
+      "processed_at": "2025-09-05T21:00:21.810983",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -1173,7 +1211,9 @@
       "total_pages": 7,
       "total_chars": 10573,
       "total_words": 1637,
-      "total_chunks": 16
+      "total_chunks": 16,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1184,7 +1224,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-640dc17d-b003-4df8-b698-9eaf7e015dc3.pdf",
       "file_size": 237233,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.550072",
+      "processed_at": "2025-09-05T21:00:22.009280",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -1257,7 +1297,9 @@
       "total_pages": 7,
       "total_chars": 12672,
       "total_words": 1944,
-      "total_chunks": 18
+      "total_chunks": 18,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1268,7 +1310,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-79ee94c5-8543-4ff3-9ba6-c9a56ee16fe4.pdf",
       "file_size": 1535229,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.735332",
+      "processed_at": "2025-09-05T21:00:23.079490",
       "title": "Smart Investing Booklet",
       "author": "",
       "subject": "",
@@ -1375,7 +1417,9 @@
       "total_pages": 13,
       "total_chars": 15252,
       "total_words": 2246,
-      "total_chunks": 22
+      "total_chunks": 22,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1386,7 +1430,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-a42ff552-53e0-43ec-bff2-cc51ad1994e5.pdf",
       "file_size": 272991,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.833126",
+      "processed_at": "2025-09-05T21:00:23.699023",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -1481,7 +1525,9 @@
       "total_pages": 10,
       "total_chars": 17774,
       "total_words": 2706,
-      "total_chunks": 25
+      "total_chunks": 25,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1492,7 +1538,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-b581f219-85df-45e4-9407-33665b52dfff.pdf",
       "file_size": 250160,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.889604",
+      "processed_at": "2025-09-05T21:00:24.055128",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -1571,7 +1617,9 @@
       "total_pages": 8,
       "total_chars": 13438,
       "total_words": 2089,
-      "total_chunks": 19
+      "total_chunks": 19,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1582,7 +1630,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-b6320e61-8e07-442f-97d8-81375e02857b.pdf",
       "file_size": 276467,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:52.970591",
+      "processed_at": "2025-09-05T21:00:24.196100",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -1679,7 +1727,9 @@
       "total_pages": 10,
       "total_chars": 18278,
       "total_words": 2793,
-      "total_chunks": 27
+      "total_chunks": 27,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1690,7 +1740,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-b90e8617-0b1d-4525-9a32-f99950556f1a.pdf",
       "file_size": 256746,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:53.023115",
+      "processed_at": "2025-09-05T21:00:24.294009",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -1772,7 +1822,9 @@
       "total_pages": 8,
       "total_chars": 15179,
       "total_words": 2343,
-      "total_chunks": 22
+      "total_chunks": 22,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1783,7 +1835,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-cd47f10a-ad1b-4fec-b91e-b09e4ac96b8a.pdf",
       "file_size": 256408,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:53.080531",
+      "processed_at": "2025-09-05T21:00:24.410358",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -1866,7 +1918,9 @@
       "total_pages": 8,
       "total_chars": 15356,
       "total_words": 2357,
-      "total_chunks": 23
+      "total_chunks": 23,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1877,7 +1931,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-f4584757-4603-47d6-b406-fac9cd07d6c1.pdf",
       "file_size": 245414,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:53.127146",
+      "processed_at": "2025-09-05T21:00:24.524999",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -1950,7 +2004,9 @@
       "total_pages": 7,
       "total_chars": 12908,
       "total_words": 2010,
-      "total_chunks": 18
+      "total_chunks": 18,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   },
   {
@@ -1961,7 +2017,7 @@
       "filepath": "C:\\Users\\Admin\\Desktop\\New folder (2)\\New folder (2)\\New folder (2)\\Arvocap-chatbot-main\\python_training\\data\\pdfs\\OTHER-f885508f-8c06-4baf-8f7c-266e4ad08c43.pdf",
       "file_size": 228773,
       "extraction_method": "PyMuPDF",
-      "processed_at": "2025-09-03T01:21:53.183485",
+      "processed_at": "2025-09-05T21:00:24.704440",
       "title": "",
       "author": "Wilson wariari",
       "subject": "",
@@ -2032,7 +2088,9 @@
       "total_pages": 7,
       "total_chars": 10672,
       "total_words": 1701,
-      "total_chunks": 16
+      "total_chunks": 16,
+      "ocr_used": false,
+      "extraction_method": "PyMuPDF"
     }
   }
 ]

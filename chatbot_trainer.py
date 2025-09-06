@@ -1,4 +1,6 @@
 import openai
+import asyncio
+import os
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
 from transformers import TextDataset, DataCollatorForLanguageModeling
 import torch
@@ -11,6 +13,10 @@ from vector_database import ChatbotKnowledgeBase
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Limit concurrent embedding/context computations to avoid CPU thrash under load
+EMBEDDING_MAX_CONCURRENCY = int(os.getenv("EMBEDDING_MAX_CONCURRENCY", "4"))
+EMBEDDING_SEMAPHORE = asyncio.Semaphore(EMBEDDING_MAX_CONCURRENCY)
 
 class ChatbotTrainer:
     def __init__(self, use_openai: bool = True):
@@ -248,13 +254,19 @@ class ChatbotTrainer:
             return False
 
 class ChatbotInterface:
-    def __init__(self, use_openai: bool = True, model_path: Optional[str] = None):
+    def __init__(self, use_openai: bool = True, model_path: Optional[str] = None, knowledge_base: Optional[ChatbotKnowledgeBase] = None):
         self.use_openai = use_openai
-        self.knowledge_base = ChatbotKnowledgeBase()
+        # Reuse a shared knowledge base if provided to avoid duplicate model loads
+        self.knowledge_base = knowledge_base or ChatbotKnowledgeBase()
         
         if use_openai:
             openai.api_key = OPENAI_API_KEY
             self.client = openai.OpenAI(api_key=OPENAI_API_KEY)
+            # Async client for non-blocking requests
+            try:
+                self.async_client = openai.AsyncOpenAI(api_key=OPENAI_API_KEY)
+            except Exception:
+                self.async_client = None
             self.model_name = CHAT_MODEL
         else:
             self.load_local_model(model_path or './trained_model')
@@ -266,6 +278,11 @@ class ChatbotInterface:
         try:
             openai.api_key = new_key
             self.client = openai.OpenAI(api_key=new_key)
+            # Refresh async client too if available
+            try:
+                self.async_client = openai.AsyncOpenAI(api_key=new_key)
+            except Exception:
+                self.async_client = None
             logger.info("Updated OpenAI API key for ChatbotInterface")
         except Exception as e:
             logger.error(f"Failed to update OpenAI API key in ChatbotInterface: {e}")
@@ -283,45 +300,159 @@ class ChatbotInterface:
             self.model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
     
     def generate_response(self, user_input: str) -> str:
-        """Generate response to user input"""
+        """Generate response to user input with citations when possible"""
         try:
-            # Get relevant context from knowledge base
-            context = self.knowledge_base.find_relevant_context(user_input)
-            
+            # Get top relevant docs with metadata for citations
+            top_results = self.knowledge_base.search_similar_content(user_input, max_results=3)
+            # Build context (concatenate trimmed content)
+            ctx_parts = []
+            for r in top_results:
+                content = (r.get('content') or '').strip()
+                if content:
+                    ctx_parts.append(content[:800])
+            context = "\n\n".join(ctx_parts)
+
+            # Build references list for citation rendering
+            references = []
+            for i, r in enumerate(top_results, start=1):
+                md = r.get('metadata') or {}
+                src_type = md.get('type') or ''
+                url = (md.get('url') or '').strip()
+                title = (md.get('title') or '').strip()
+                source = (md.get('source') or '').strip()
+                label = url or title or source or 'Unknown source'
+                # Normalize PDF vs website hint
+                kind = 'PDF' if 'pdf' in (src_type or '').lower() or (label.lower().endswith('.pdf')) else ('Website' if url else 'Document')
+                references.append({
+                    'index': i,
+                    'label': label,
+                    'type': kind,
+                    'url': url,
+                })
+
             if self.use_openai:
-                return self._generate_openai_response(user_input, context)
+                return self._generate_openai_response(user_input, context, references)
             else:
                 return self._generate_local_response(user_input, context)
-                
         except Exception as e:
             logger.error(f"Error generating response: {e}")
             return "I'm sorry, I encountered an error while processing your request."
-    
-    def _generate_openai_response(self, user_input: str, context: str) -> str:
-        """Generate response using OpenAI API"""
+
+    async def generate_response_async(self, user_input: str) -> str:
+        """Async version: builds citations and uses async OpenAI client when available."""
         try:
+            # Offload embedding/search to a thread with bounded concurrency
+            async with EMBEDDING_SEMAPHORE:
+                top_results = await asyncio.to_thread(self.knowledge_base.search_similar_content, user_input, 3)
+
+            ctx_parts = []
+            for r in top_results:
+                c = (r.get('content') or '').strip()
+                if c:
+                    ctx_parts.append(c[:800])
+            context = "\n\n".join(ctx_parts)
+
+            references = []
+            for i, r in enumerate(top_results, start=1):
+                md = r.get('metadata') or {}
+                src_type = md.get('type') or ''
+                url = (md.get('url') or '').strip()
+                title = (md.get('title') or '').strip()
+                source = (md.get('source') or '').strip()
+                label = url or title or source or 'Unknown source'
+                kind = 'PDF' if 'pdf' in (src_type or '').lower() or (label.lower().endswith('.pdf')) else ('Website' if url else 'Document')
+                references.append({'index': i, 'label': label, 'type': kind, 'url': url})
+
+            if self.use_openai:
+                if getattr(self, "async_client", None) is not None:
+                    return await self._generate_openai_response_async(user_input, context, references)
+                return await asyncio.to_thread(self._generate_openai_response, user_input, context, references)
+            else:
+                return await asyncio.to_thread(self._generate_local_response, user_input, context)
+        except Exception as e:
+            logger.error(f"Error generating async response: {e}")
+            return "I'm sorry, I encountered an error while processing your request."
+    
+    def _generate_openai_response(self, user_input: str, context: str, references: list) -> str:
+        """Generate response using OpenAI API with citation instructions"""
+        try:
+            # Render references as a numbered list for the model to cite
+            refs_lines = []
+            for r in references:
+                idx = r.get('index')
+                label = r.get('label') or 'Unknown source'
+                kind = r.get('type') or 'Source'
+                url = r.get('url') or ''
+                tail = f" — {url}" if url else ''
+                refs_lines.append(f"[{idx}] {kind}: {label}{tail}")
+            refs_block = "\n".join(refs_lines) if refs_lines else "(no references)"
+
+            system_prompt = (
+                "You are a helpful chatbot. Answer concisely. "
+                "Use the provided Context to ground your answer. "
+                "When you rely on information from a specific source, include a citation marker like [1] matching the References list. "
+                "If the answer is not supported by the Context, say you don't have a source for that and avoid fabricating citations. "
+                "End your answer with a 'References' section listing the sources you used, if any."
+            )
+
             messages = [
-                {
-                    "role": "system",
-                    "content": f"You are a helpful chatbot. Use the following context to answer questions: {context}"
-                },
-                {
-                    "role": "user",
-                    "content": user_input
-                }
+                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": f"Context:\n{context}"},
+                {"role": "system", "content": f"References:\n{refs_block}"},
+                {"role": "user", "content": user_input},
             ]
-            
+
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
                 max_tokens=500,
-                temperature=0.7
+                temperature=0.3
             )
-            
             return response.choices[0].message.content
-            
         except Exception as e:
             logger.error(f"Error with OpenAI API: {e}")
+            return "I'm having trouble connecting to the AI service."
+
+    async def _generate_openai_response_async(self, user_input: str, context: str, references: list) -> str:
+        """Generate response using OpenAI API asynchronously with citations."""
+        try:
+            if getattr(self, "async_client", None) is None:
+                return await asyncio.to_thread(self._generate_openai_response, user_input, context, references)
+
+            refs_lines = []
+            for r in references:
+                idx = r.get('index')
+                label = r.get('label') or 'Unknown source'
+                kind = r.get('type') or 'Source'
+                url = r.get('url') or ''
+                tail = f" — {url}" if url else ''
+                refs_lines.append(f"[{idx}] {kind}: {label}{tail}")
+            refs_block = "\n".join(refs_lines) if refs_lines else "(no references)"
+
+            system_prompt = (
+                "You are a helpful chatbot. Answer concisely. "
+                "Use the provided Context to ground your answer. "
+                "When you rely on information from a specific source, include a citation marker like [1] matching the References list. "
+                "If the answer is not supported by the Context, say you don't have a source for that and avoid fabricating citations. "
+                "End your answer with a 'References' section listing the sources you used, if any."
+            )
+
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": f"Context:\n{context}"},
+                {"role": "system", "content": f"References:\n{refs_block}"},
+                {"role": "user", "content": user_input},
+            ]
+
+            response = await self.async_client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                max_tokens=500,
+                temperature=0.3
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"Error with OpenAI API (async): {e}")
             return "I'm having trouble connecting to the AI service."
     
     def _generate_local_response(self, user_input: str, context: str) -> str:

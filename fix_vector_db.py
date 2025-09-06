@@ -29,35 +29,47 @@ def fix_vector_database():
             pass  # Collection might not exist
         
         # Recreate fresh FAISS vector database
-        kb.vector_db = VectorDatabase("vector_db_faiss")
+        kb.vector_db = VectorDatabase(VECTOR_DB_PATH)
         
         # Load processed PDF data
         logger.info("Loading processed PDF data...")
         with open('data/processed_pdfs.json', 'r', encoding='utf-8') as f:
             pdf_data = json.load(f)
-        
+
+        # Support both list and dict formats
+        if isinstance(pdf_data, list):
+            pdfs = pdf_data
+        else:
+            pdfs = pdf_data.get('pdfs', []) or pdf_data.get('processed_pdfs', []) or []
+
         total_chunks = 0
-        total_pdfs = len(pdf_data['pdfs'])
+        total_pdfs = len(pdfs)
         
         # Process each PDF and add all chunks to vector database
-        for i, pdf in enumerate(pdf_data['pdfs']):
-            logger.info(f"Processing PDF {i+1}/{total_pdfs}: {pdf['metadata']['filename']}")
+        batch = []
+        for i, pdf in enumerate(pdfs):
+            logger.info(f"Processing PDF {i+1}/{total_pdfs}: {pdf.get('metadata', {}).get('filename', 'unknown')}")
             
-            # Add each chunk as a separate document
-            chunks = pdf['content']['chunks']
+            chunks = (pdf.get('content', {}) or {}).get('chunks', []) or []
             for j, chunk in enumerate(chunks):
-                # Create document entry
                 doc_data = {
                     'content': chunk,
-                    'url': pdf['source'],
-                    'title': pdf['metadata']['filename'],
-                    'meta_description': f"PDF chunk {j+1} from {pdf['metadata']['filename']}",
-                    'keywords': []
+                    'url': pdf.get('source', ''),
+                    'title': (pdf.get('metadata', {}) or {}).get('filename', ''),
+                    'meta_description': f"PDF chunk {j+1}",
+                    'keywords': [],
+                    'type': 'pdf_chunk',
+                    'source': pdf.get('source', ''),
+                    'chunk_id': f"{(pdf.get('metadata', {}) or {}).get('filename', 'file')}_chunk_{j}"
                 }
-                
-                # Add to vector database
-                kb.vector_db.add_documents([doc_data])
+                batch.append(doc_data)
                 total_chunks += 1
+
+                if len(batch) >= 50:
+                    kb.vector_db.add_documents(batch)
+                    batch = []
+        if batch:
+            kb.vector_db.add_documents(batch)
         
         logger.info(f"✅ Successfully added {total_chunks} chunks from {total_pdfs} PDFs")
         

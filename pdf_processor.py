@@ -362,7 +362,11 @@ class PDFProcessor:
         processed_pdfs = []
         for pdf_file in pdf_files:
             try:
-                result = self.process_pdf(str(pdf_file))
+                # Prefer OCR-enhanced processing when enabled
+                if self.use_ocr and self.ocr_available:
+                    result = self.process_pdf_with_ocr(str(pdf_file))
+                else:
+                    result = self.process_pdf(str(pdf_file))
                 if result:
                     processed_pdfs.append(result)
                     logger.info(f"Successfully processed: {pdf_file.name}")
@@ -397,7 +401,7 @@ class PDFProcessor:
             logger.error(f"Error saving processed content: {e}")
     
     def extract_text_with_ocr(self, pdf_path: str) -> Dict[str, any]:
-        """Extract text from PDF using OCR for scanned documents"""
+        """Extract text from PDF using OCR for scanned documents with enhanced accuracy"""
         if not self.ocr_available:
             logger.warning("OCR not available, skipping OCR extraction")
             return None
@@ -405,20 +409,49 @@ class PDFProcessor:
         try:
             import pytesseract
             from pdf2image import convert_from_path
-            from PIL import Image
+            from PIL import Image, ImageFilter, ImageOps, ImageEnhance
+            import numpy as np
             
             logger.info(f"Starting OCR extraction for: {pdf_path}")
             
             # Convert PDF pages to images
-            pages = convert_from_path(pdf_path)
+            # Higher DPI improves OCR quality; 300 is a good trade-off
+            try:
+                pages = convert_from_path(pdf_path, dpi=300)
+            except Exception:
+                pages = convert_from_path(pdf_path)
             
             pages_content = []
             total_text = ""
             
             for page_num, page_image in enumerate(pages):
                 try:
+                    # Preprocess image for better OCR
+                    img = page_image.convert('L')  # grayscale
+                    # Improve contrast and sharpness slightly
+                    try:
+                        img = ImageOps.autocontrast(img)
+                        img = ImageEnhance.Contrast(img).enhance(1.5)
+                        img = ImageEnhance.Sharpness(img).enhance(1.2)
+                        # Light denoise
+                        img = img.filter(ImageFilter.MedianFilter(size=3))
+                    except Exception:
+                        pass
+
+                    # Optional thresholding via numpy (robust across scans)
+                    try:
+                        arr = np.array(img)
+                        # Otsu-like simple threshold fallback
+                        thresh = max(50, int(arr.mean()))
+                        bin_arr = (arr > thresh) * 255
+                        img = Image.fromarray(bin_arr.astype('uint8'))
+                    except Exception:
+                        pass
+
+                    # Use a reliable Tesseract config: LSTM engine, assume block of text
+                    tesseract_config = r"--oem 3 --psm 6 -l eng"
                     # Extract text from image using OCR
-                    ocr_text = pytesseract.image_to_string(page_image, lang='eng')
+                    ocr_text = pytesseract.image_to_string(img, config=tesseract_config)
                     
                     if ocr_text.strip():
                         page_content = {

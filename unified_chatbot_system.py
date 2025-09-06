@@ -115,18 +115,17 @@ class UnifiedChatbotSystem:
         for url in urls:
             if total_pages >= max_pages:
                 break
-                
             try:
                 logger.info(f"Scraping: {url}")
-                result = self.web_scraper.scrape_website(url)
+                remaining = max_pages - total_pages
+                result = self.web_scraper.scrape_website(url, max_pages=remaining)
                 
                 if result:
                     scraped_data[url] = result
-                    total_pages += 1
-                    logger.info(f"✅ Scraped: {url}")
+                    total_pages += len(result)
+                    logger.info(f"✅ Scraped {len(result)} page(s) from: {url}")
                 else:
                     logger.warning(f"⚠️ Failed to scrape: {url}")
-                    
             except Exception as e:
                 logger.error(f"❌ Error scraping {url}: {e}")
         
@@ -185,34 +184,37 @@ class UnifiedChatbotSystem:
         Update knowledge base with new content
         """
         logger.info("Updating knowledge base...")
-        
         try:
             added_docs = 0
-            
+
             # Process scraped web data
             if scraped_data:
-                for url, content in scraped_data.get("scraped_data", {}).items():
-                    if isinstance(content, dict) and content.get('text'):
-                        # Create chunks from web content
-                        chunks = self.text_processor.chunk_text(content['text'])
-                        
-                        for i, chunk in enumerate(chunks):
-                            metadata = {
-                                "source": url,
-                                "type": "web",
-                                "chunk_id": f"{url}_chunk_{i}",
-                                "scraped_at": content.get('timestamp')
-                            }
-                            self.knowledge_base.add_document(chunk, metadata)
-                            added_docs += 1
-            
+                for url, pages in (scraped_data.get("scraped_data", {}) or {}).items():
+                    # pages is expected to be a list of page dicts
+                    if isinstance(pages, list):
+                        for page in pages:
+                            text = page.get('content', '') or ''
+                            if not text:
+                                continue
+                            chunks = self.text_processor.chunk_text(text)
+                            title = page.get('title', '')
+                            for i, chunk in enumerate(chunks):
+                                metadata = {
+                                    "source": url,
+                                    "type": "web",
+                                    "chunk_id": f"{url}_chunk_{i}",
+                                    "title": title,
+                                    "scraped_at": scraped_data.get('timestamp')
+                                }
+                                self.knowledge_base.add_document(chunk, metadata)
+                                added_docs += 1
+
             # Process PDF data
             if pdf_data:
                 for pdf in pdf_data.get("processed_pdfs", []):
-                    content = pdf.get('content', {})
-                    metadata = pdf.get('metadata', {})
-                    chunks = content.get('chunks', [])
-                    
+                    content = pdf.get('content', {}) or {}
+                    metadata = pdf.get('metadata', {}) or {}
+                    chunks = content.get('chunks', []) or []
                     for i, chunk in enumerate(chunks):
                         if chunk and len(chunk.strip()) > 20:
                             chunk_metadata = {
@@ -224,11 +226,10 @@ class UnifiedChatbotSystem:
                             }
                             self.knowledge_base.add_document(chunk, chunk_metadata)
                             added_docs += 1
-            
+
             logger.info(f"✅ Added {added_docs} documents to knowledge base")
             self.last_training_time = datetime.now().isoformat()
             return True
-            
         except Exception as e:
             logger.error(f"❌ Failed to update knowledge base: {e}")
             return False
@@ -548,7 +549,7 @@ def main():
         import uvicorn
         print("🚀 Starting Unified Arvocap Chatbot System")
         print(f"🌐 Server will be available at: http://{args.host}:{args.port}")
-        print("📚 API docs at: http://{args.host}:{args.port}/docs")
+        print(f"📚 API docs at: http://{args.host}:{args.port}/docs")
         
         uvicorn.run(
             "unified_chatbot_system:app",
@@ -561,4 +562,5 @@ def main():
         asyncio.run(run_cli_mode(args))
 
 if __name__ == "__main__":
+    main()
     main()
