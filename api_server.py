@@ -683,11 +683,71 @@ class DocumentUploadRequest(BaseModel):
     chunk_size: Optional[int] = 1000
     chunk_overlap: Optional[int] = 200
 
+class ManualEntryRequest(BaseModel):
+    title: str
+    content: str
+    chunk_size: Optional[int] = 1000
+    chunk_overlap: Optional[int] = 200
+
 class WebsiteScrapingRequest(BaseModel):
     url: str
     depth: Optional[int] = 2
     chunk_size: Optional[int] = 1000
     chunk_overlap: Optional[int] = 200
+
+@app.post("/admin/add_manual_entry")
+async def add_manual_entry(request: ManualEntryRequest):
+    """Add manual entry to knowledge base"""
+    try:
+        if knowledge_base is None:
+            raise HTTPException(status_code=503, detail="Knowledge base not initialized")
+        
+        # Process and add the manual entry
+        text_processor = TextProcessor()
+        chunks = text_processor.chunk_text(
+            request.content,
+            chunk_size=request.chunk_size,
+            chunk_overlap=request.chunk_overlap
+        )
+        
+        # Add metadata and store in knowledge base
+        timestamp = datetime.now().isoformat()
+        metadata = {
+            "title": request.title,
+            "type": "manual",
+            "timestamp": timestamp,
+            "source": "manual_entry"
+        }
+        
+        # Add chunks to knowledge base
+        added_chunks = []
+        for i, chunk in enumerate(chunks):
+            chunk_id = f"manual_{timestamp}_{i}"
+            success = knowledge_base.add_document(
+                text=chunk,
+                doc_id=chunk_id,
+                metadata={**metadata, "chunk_index": i}
+            )
+            if success:
+                added_chunks.append(chunk_id)
+        
+        if added_chunks:
+            return {
+                "success": True,
+                "chunks_created": len(added_chunks),
+                "message": "Manual entry added successfully"
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to add chunks to knowledge base"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to add manual entry: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/admin/scrape_website")
 async def scrape_website(request: WebsiteScrapingRequest):
