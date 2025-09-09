@@ -1,3 +1,5 @@
+--only-binary=:all:
+
 # Core build tools
 pip>=25.2
 setuptools>=65.0
@@ -30,7 +32,7 @@ lxml==4.9.3
 html5lib==1.1
 
 # Data processing
-pandas==2.1.4
+pandas==2.2.2
 numpy==1.26.4       # <2.0.0 to avoid ABI breaks
 nltk==3.8.1
 spacy==3.7.2
