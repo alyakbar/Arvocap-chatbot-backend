@@ -19,7 +19,7 @@ tokenizers>=0.15.2
 
 # Vector Databases
 chromadb==0.4.18
-faiss-cpu==1.7.4  # Added FAISS support
+faiss-cpu==1.12.0  # Added FAISS support
 annoy==1.17.3     # Optional: Alternative similarity search
 
 # Web scraping and HTML
