@@ -8,6 +8,7 @@ from torch.utils.data import Dataset
 import json
 from typing import List, Dict, Optional
 import logging
+import re
 from config import OPENAI_API_KEY, CHAT_MODEL, BATCH_SIZE, LEARNING_RATE, NUM_EPOCHS
 from vector_database import ChatbotKnowledgeBase
 
@@ -258,6 +259,10 @@ class ChatbotInterface:
         self.use_openai = use_openai
         # Reuse a shared knowledge base if provided to avoid duplicate model loads
         self.knowledge_base = knowledge_base or ChatbotKnowledgeBase()
+        # Compile regex once for sanitization of the legacy email 'invest@arvocap.com'
+        # Requirement: change 'invest@arvocap.com' -> 'clients@arvocap.com' in bot responses
+        self._legacy_email_pattern = re.compile(r"\binvest@arvocap\.com\b", re.IGNORECASE)
+        self._new_email = "clients@arvocap.com"
         
         if use_openai:
             openai.api_key = OPENAI_API_KEY
@@ -331,9 +336,10 @@ class ChatbotInterface:
                 })
 
             if self.use_openai:
-                return self._generate_openai_response(user_input, context, references)
+                raw = self._generate_openai_response(user_input, context, references)
             else:
-                return self._generate_local_response(user_input, context)
+                raw = self._generate_local_response(user_input, context)
+            return self._sanitize_output(raw)
         except Exception as e:
             logger.error(f"Error generating response: {e}")
             return "I'm sorry, I encountered an error while processing your request."
@@ -365,40 +371,29 @@ class ChatbotInterface:
 
             if self.use_openai:
                 if getattr(self, "async_client", None) is not None:
-                    return await self._generate_openai_response_async(user_input, context, references)
-                return await asyncio.to_thread(self._generate_openai_response, user_input, context, references)
+                    raw = await self._generate_openai_response_async(user_input, context, references)
+                else:
+                    raw = await asyncio.to_thread(self._generate_openai_response, user_input, context, references)
             else:
-                return await asyncio.to_thread(self._generate_local_response, user_input, context)
+                raw = await asyncio.to_thread(self._generate_local_response, user_input, context)
+            return self._sanitize_output(raw)
         except Exception as e:
             logger.error(f"Error generating async response: {e}")
             return "I'm sorry, I encountered an error while processing your request."
     
     def _generate_openai_response(self, user_input: str, context: str, references: list) -> str:
-        """Generate response using OpenAI API with citation instructions"""
+        """Generate response using OpenAI API without citations"""
         try:
-            # Render references as a numbered list for the model to cite
-            refs_lines = []
-            for r in references:
-                idx = r.get('index')
-                label = r.get('label') or 'Unknown source'
-                kind = r.get('type') or 'Source'
-                url = r.get('url') or ''
-                tail = f" — {url}" if url else ''
-                refs_lines.append(f"[{idx}] {kind}: {label}{tail}")
-            refs_block = "\n".join(refs_lines) if refs_lines else "(no references)"
-
             system_prompt = (
-                "You are a helpful chatbot. Answer concisely. "
+                "You are a helpful chatbot. Answer concisely and naturally. "
                 "Use the provided Context to ground your answer. "
-                "When you rely on information from a specific source, include a citation marker like [1] matching the References list. "
-                "If the answer is not supported by the Context, say you don't have a source for that and avoid fabricating citations. "
-                "End your answer with a 'References' section listing the sources you used, if any."
+                "Do not include any citations, reference numbers, or source attributions in your response. "
+                "Provide a clean, direct answer based on the context information."
             )
 
             messages = [
                 {"role": "system", "content": system_prompt},
                 {"role": "system", "content": f"Context:\n{context}"},
-                {"role": "system", "content": f"References:\n{refs_block}"},
                 {"role": "user", "content": user_input},
             ]
 
@@ -414,33 +409,21 @@ class ChatbotInterface:
             return "I'm having trouble connecting to the AI service."
 
     async def _generate_openai_response_async(self, user_input: str, context: str, references: list) -> str:
-        """Generate response using OpenAI API asynchronously with citations."""
+        """Generate response using OpenAI API asynchronously without citations."""
         try:
             if getattr(self, "async_client", None) is None:
                 return await asyncio.to_thread(self._generate_openai_response, user_input, context, references)
 
-            refs_lines = []
-            for r in references:
-                idx = r.get('index')
-                label = r.get('label') or 'Unknown source'
-                kind = r.get('type') or 'Source'
-                url = r.get('url') or ''
-                tail = f" — {url}" if url else ''
-                refs_lines.append(f"[{idx}] {kind}: {label}{tail}")
-            refs_block = "\n".join(refs_lines) if refs_lines else "(no references)"
-
             system_prompt = (
-                "You are a helpful chatbot. Answer concisely. "
+                "You are a helpful chatbot. Answer concisely and naturally. "
                 "Use the provided Context to ground your answer. "
-                "When you rely on information from a specific source, include a citation marker like [1] matching the References list. "
-                "If the answer is not supported by the Context, say you don't have a source for that and avoid fabricating citations. "
-                "End your answer with a 'References' section listing the sources you used, if any."
+                "Do not include any citations, reference numbers, or source attributions in your response. "
+                "Provide a clean, direct answer based on the context information."
             )
 
             messages = [
                 {"role": "system", "content": system_prompt},
                 {"role": "system", "content": f"Context:\n{context}"},
-                {"role": "system", "content": f"References:\n{refs_block}"},
                 {"role": "user", "content": user_input},
             ]
 
@@ -486,6 +469,19 @@ class ChatbotInterface:
         except Exception as e:
             logger.error(f"Error with local model: {e}")
             return "I'm having trouble processing your request."
+
+    # ----------------------------
+    # Post-processing utilities
+    # ----------------------------
+    def _sanitize_output(self, text: str) -> str:
+        """Replace the legacy email 'invest@arvocap.com' with 'clients@arvocap.com'.
+
+        This ensures bot responses use the updated email address while preserving
+        all other knowledge content unchanged.
+        """
+        if not text:
+            return text
+        return self._legacy_email_pattern.sub(self._new_email, text)
 
 def main():
     """Example usage"""
